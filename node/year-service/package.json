@@ -2,10 +2,9 @@
   "name": "year-service",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
-  "scripts": {
-    "dev": "nodemon main.js",
-    "start": "node -r ./tracing.js main.js",
+"main": "index.js",
+"scripts": {
+    "start": "node -r ./tracing.js index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -15,11 +14,10 @@
     "@opentelemetry/api": "^1.4.1",
     "@opentelemetry/auto-instrumentations-node": "^0.38.0",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.40.0",
-    "@opentelemetry/sdk-node": "^0.40.0",
-    "express": "^4.18.2"
+    "@opentelemetry/instrumentation-aws-lambda": "^0.36.0",
+    "@opentelemetry/sdk-node": "^0.40.0"
   },
-  "devDependencies": {
-    "nodemon": "^2.0.22",
+"devDependencies": {
     "prettier": "^2.8.8"
   }
 }

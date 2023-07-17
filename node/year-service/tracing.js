@@ -1,6 +1,6 @@
 const process = require('process');
 const { Metadata, credentials } = require('@grpc/grpc-js');
-
+const { AwsLambdaInstrumentation } = require('@opentelemetry/instrumentation-aws-lambda');
 const { NodeSDK } = require('@opentelemetry/sdk-node');
 const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
 const { Resource } = require('@opentelemetry/resources');
@@ -28,11 +28,25 @@ const sdk = new NodeSDK({
     [SemanticResourceAttributes.SERVICE_NAME]: SERVICE_NAME,
   }),
   traceExporter,
-  instrumentations: [getNodeAutoInstrumentations({
-    '@opentelemetry/instrumentation-fs': {
-      enabled: false,
-    },
-  })],
+  instrumentations: [
+    getNodeAutoInstrumentations({
+      '@opentelemetry/instrumentation-fs': {
+        enabled: false,
+      },
+    }),
+    new AwsLambdaInstrumentation({
+      // By default, this instrumentation will try to read the context from the _X_AMZN_TRACE_ID environment variable set by Lambda,
+      // set this to true or set the environment variable OTEL_LAMBDA_DISABLE_AWS_CONTEXT_PROPAGATION=true to disable this behavior
+      disableAwsContextPropagation: true,
+      requestHook: (span, { event, context }) => {
+        span.setAttribute('faas.name', context.functionName);
+      },
+      responseHook: (span, { err, res }) => {
+        if (err instanceof Error) span.setAttribute('faas.error', err.message);
+        if (res) span.setAttribute('faas.res', res);
+      },
+    }),
+  ],
 });
 
 sdk.start();
